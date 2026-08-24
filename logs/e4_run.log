@@ -1,0 +1,52 @@
+loading dynamic instance: data/dyn_wta_50x100x3_K10_dist.txt
+m=50 n=100 K=10 mu=3 total_value=5521
+LLM policy active: model=deepseek-v4-flash modules=a+b+c+d timeout=300s
+
+=== MC run 1/3 (seed 42) ===
+  wave  0 | new  10 | stay   0 | avg d  5.90 | exp cost     0.0004 | destroyed      362 | bt   0 | cum leak       45 |  60.49s
+  wave  1 | new  10 | stay   2 | avg d  6.50 | exp cost     0.0522 | destroyed      538 | bt   0 | cum leak        0 |  60.47s
+  wave  2 | new  10 | stay   0 | avg d  5.80 | exp cost     0.0000 | destroyed      462 | bt   0 | cum leak       74 |  60.43s
+  wave  3 | new  10 | stay   2 | avg d  6.42 | exp cost     0.0148 | destroyed      639 | bt   0 | cum leak        0 |  60.49s
+  wave  4 | new  10 | stay   0 | avg d  5.60 | exp cost     0.0108 | destroyed      652 | bt   0 | cum leak        0 |  60.52s
+  wave  5 | new  10 | stay   0 | avg d  6.90 | exp cost     0.0024 | destroyed      538 | bt   0 | cum leak       80 |  60.40s
+  wave  6 | new  10 | stay   2 | avg d  6.00 | exp cost     0.0006 | destroyed      534 | bt   0 | cum leak       37 |  60.34s
+  wave  7 | new  10 | stay   3 | avg d  6.77 | exp cost     0.0094 | destroyed      500 | bt   0 | cum leak       18 |  60.35s
+  wave  8 | new  10 | stay   3 | avg d  7.23 | exp cost     0.0332 | destroyed      669 | bt   0 | cum leak       11 |  60.56s
+  wave  9 | new  10 | stay   2 | avg d  5.67 | exp cost     0.0149 | destroyed      627 | bt   0 | cum leak        0 |  60.47s
+
+=== MC run 2/3 (seed 43) ===
+  wave  0 | new  10 | stay   0 | avg d  5.90 | exp cost     0.0004 | destroyed      362 | bt   0 | cum leak       45 |  60.47s
+  wave  1 | new  10 | stay   2 | avg d  6.50 | exp cost     0.0193 | destroyed      494 | bt   0 | cum leak       44 |  60.55s
+  wave  2 | new  10 | stay   1 | avg d  6.00 | exp cost     0.0000 | destroyed      462 | bt   0 | cum leak      118 |  60.44s
+  wave  3 | new  10 | stay   3 | avg d  6.46 | exp cost     0.0023 | destroyed      557 | bt   0 | cum leak      126 |  60.42s
+  wave  4 | new  10 | stay   4 | avg d  5.79 | exp cost     0.0054 | destroyed      778 | bt   0 | cum leak        0 |  60.41s
+  wave  5 | new  10 | stay   0 | avg d  6.90 | exp cost     0.0024 | destroyed      538 | bt   0 | cum leak       80 |  60.35s
+  wave  6 | new  10 | stay   2 | avg d  6.00 | exp cost     0.0010 | destroyed      534 | bt   0 | cum leak       37 |  60.49s
+  wave  7 | new  10 | stay   3 | avg d  6.77 | exp cost     0.0094 | destroyed      500 | bt   0 | cum leak       18 |  60.49s
+  wave  8 | new  10 | stay   3 | avg d  7.23 | exp cost     0.0332 | destroyed      669 | bt   0 | cum leak       11 |  60.46s
+  wave  9 | new  10 | stay   2 | avg d  5.67 | exp cost     0.0148 | destroyed      627 | bt   0 | cum leak        0 |  60.36s
+
+=== MC run 3/3 (seed 44) ===
+  wave  0 | new  10 | stay   0 | avg d  5.90 | exp cost     0.0095 | destroyed      407 | bt   0 | cum leak        0 |  60.43s
+  wave  1 | new  10 | stay   0 | avg d  6.30 | exp cost     0.0070 | destroyed      400 | bt   0 | cum leak       93 |  60.33s
+  wave  2 | new  10 | stay   2 | avg d  6.25 | exp cost     0.0008 | destroyed      506 | bt   0 | cum leak      123 |  60.31s
+  wave  3 | new  10 | stay   3 | avg d  6.54 | exp cost     0.0025 | destroyed      608 | bt   0 | cum leak       80 |  60.44s
+  wave  4 | new  10 | stay   3 | avg d  5.69 | exp cost     0.0170 | destroyed      732 | bt   0 | cum leak        0 |  60.37s
+  wave  5 | new  10 | stay   0 | avg d  6.90 | exp cost     0.0000 | destroyed      497 | bt   0 | cum leak      121 |  60.29s
+  wave  6 | new  10 | stay   3 | avg d  6.00 | exp cost     0.0283 | destroyed      612 | bt   0 | cum leak        0 |  60.33s
+  wave  7 | new  10 | stay   0 | avg d  6.50 | exp cost     0.0017 | destroyed      465 | bt   0 | cum leak       16 |  60.37s
+  wave  8 | new  10 | stay   2 | avg d  7.25 | exp cost     0.0219 | destroyed      678 | bt   0 | cum leak        0 |  60.31s
+  wave  9 | new  10 | stay   0 | avg d  5.50 | exp cost     0.0078 | destroyed      616 | bt   0 | cum leak        0 |  60.29s
+
+=== Monte-Carlo summary (3 runs) ===
+  seed | leak value |  leak rate |   solver (s)
+    42 |          0 |   0.000000 |       600.00
+    43 |          0 |   0.000000 |       600.00
+    44 |          0 |   0.000000 |       600.00
+leak rate: 0.000000 +- 0.000000 (min 0.000000, max 0.000000)
+avg total solver runtime: 600.00 s | avg total wall time: 604.14 s
+avg stayover count per wave: ['0.0', '1.3', '1.0', '2.7', '2.3', '0.0', '2.3', '2.0', '2.7', '1.3']
+
+reports written: output/llm_dist_K10_report.json, output/llm_dist_K10_report.md
+result hash: b4de427c505b5c7c30f8239b95410c34d918c9c4db4b0aa78dadeb2e025e21ad
+[safe-delete][SAFE_DELETE_BULK_CONFIRM_REQUIRED] {"count":70,"threshold":50,"scope":"turn","targets":["/Users/fgod/Desktop/FGOD/Projects/UAS/WTA-Dn-branch01/output/tmp"],"targetCount":1}
