@@ -1,0 +1,9 @@
+# DN-WTA 运行依赖（Python 3.x，推荐 anaconda env "wta"）
+numpy>=1.24
+scipy>=1.10
+
+# ---- 可选：仅 cplex 基线策略 / --dn-reference 需要 ----
+# 求解器子进程默认解释器（wave_runner.DEFAULT_PYTHON，可用 --python 覆盖）：
+#   /opt/anaconda3/envs/wta/bin/python（内含 cplex 引擎）
+# 独立安装：pip install cplex
+# MARL 训练与 none / greedy 策略不需要 CPLEX。
