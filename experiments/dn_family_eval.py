@@ -181,7 +181,7 @@ def main(argv=None):
     ap.add_argument("--split", choices=["train", "val", "test"], default="test",
                     help="instance split from the MANIFEST (test = s01-s02, "
                          "the formal comparison benchmark)")
-    ap.add_argument("--policy", choices=["none", "greedy", "cplex"],
+    ap.add_argument("--policy", choices=["none", "greedy", "cplex", "marl"],
                     required=True)
     ap.add_argument("--seeds", type=int, default=30,
                     help="Monte-Carlo seeds per instance (v3 protocol: 30)")
@@ -198,6 +198,14 @@ def main(argv=None):
                     help="flat output folder, e.g. output/e13_dn3_cplex")
     ap.add_argument("--log", default=None,
                     help="optional terminal log file, e.g. logs/e13_run.log")
+    ap.add_argument("--model", default=None,
+                    help="marl checkpoint path (required for --policy marl)")
+    ap.add_argument("--device", default="auto",
+                    choices=["auto", "mps", "cpu"],
+                    help="marl inference device")
+    ap.add_argument("--no-ref", action="store_true",
+                    help="skip the per-step CPLEX reference (leak-only "
+                         "runs, e.g. generalization snapshots)")
     args = ap.parse_args(argv)
 
     instances = read_split(args.manifest, args.split)
@@ -209,11 +217,15 @@ def main(argv=None):
     solver = {"delta": args.delta, "timelimit": args.timelimit,
               "threads": args.threads, "python": args.python}
     # greedy automatically runs with the per-step CPLEX reference
-    # (--dn-reference semantics); cplex IS the reference; none needs nothing
-    with_ref = args.policy == "greedy"
+    # (--dn-reference semantics); cplex IS the reference; none needs
+    # nothing; marl needs the reference for the gap metric (disable for
+    # generalization snapshots via --no-ref)
+    with_ref = args.policy in ("greedy", "marl") and not args.no_ref
     policy = dn_policies.build_policy(args.policy, solver=solver,
                                       tmp_dir=tmp_dir,
-                                      with_reference=with_ref)
+                                      with_reference=with_ref,
+                                      model_path=args.model,
+                                      device=args.device)
 
     log("DN-WTA v3 family evaluation")
     log("  split=%s instances=%s" % (args.split, ", ".join(instances)))

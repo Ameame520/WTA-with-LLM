@@ -1,0 +1,25 @@
+device=mps actor_params=28482
+[iter     20] train 0.8377 | val 0.9366+-0.0245 | tau 1.00 | 238s
+[iter     40] train 0.8409 | val 0.9184+-0.0263 | tau 0.99 | 479s
+[iter     60] train 0.8197 | val 0.8943+-0.0349 | tau 0.99 | 722s
+[iter     80] train 0.8297 | val 0.9438+-0.0317 | tau 0.98 | 964s
+[iter    100] train 0.8798 | val 1.0000+-0.0000 | tau 0.98 | 1204s
+[iter    120] train 0.8402 | val 0.9256+-0.0278 | tau 0.97 | 1444s
+[iter    140] train 0.8294 | val 0.9392+-0.0283 | tau 0.97 | 1688s
+[iter    160] train 0.8407 | val 0.9500+-0.0255 | tau 0.96 | 1938s
+[iter    180] train 0.8541 | val 0.9414+-0.0289 | tau 0.96 | 2191s
+[iter    200] train 0.8505 | val 0.9124+-0.0306 | tau 0.95 | 2464s
+[iter    220] train 0.8493 | val 0.9310+-0.0337 | tau 0.95 | 2750s
+[iter    240] train 0.8321 | val 0.9250+-0.0317 | tau 0.94 | 3032s
+[iter    260] train 0.8412 | val 0.9244+-0.0331 | tau 0.94 | 3300s
+[iter    280] train 0.8451 | val 0.9290+-0.0265 | tau 0.93 | 3546s
+[iter    300] train 0.8354 | val 0.9427+-0.0249 | tau 0.93 | 3789s
+[iter    320] train 0.8446 | val 0.9353+-0.0134 | tau 0.92 | 4036s
+[iter    340] train 0.8410 | val 0.9353+-0.0144 | tau 0.92 | 4278s
+[iter    360] train 0.8361 | val 0.9172+-0.0224 | tau 0.91 | 4540s
+[iter    380] train 0.8204 | val 0.9142+-0.0202 | tau 0.91 | 4818s
+[iter    400] train 0.8258 | val 0.9142+-0.0202 | tau 0.90 | 5093s
+[iter    420] train 0.8235 | val 0.8978+-0.0272 | tau 0.90 | 5367s
+[iter    440] train 0.8213 | val 0.9142+-0.0202 | tau 0.89 | 5641s
+[iter    460] train 0.8352 | val 0.9142+-0.0202 | tau 0.89 | 5918s
+training done: early_stop | best val 0.8943 | wall 5917s

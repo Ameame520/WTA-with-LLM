@@ -1,0 +1,19 @@
+DN-WTA v3 family evaluation
+  split=test instances=dn_3x50_K10_s01.txt, dn_3x50_K10_s02.txt
+  policy=greedy (with per-step CPLEX reference) seeds=30 (base 42) timelimit=30s
+
+=== dn_3x50_K10_s01.txt (m=3 n=50 K=10 mu=6 pool=18 total_value=3942) ===
+  MC runs done: 10/30
+  MC runs done: 20/30
+  MC runs done: 30/30
+  leak rate 0.800820 +- 0.016625 | shots 18.0 | destroyed value 785.2
+
+=== dn_3x50_K10_s02.txt (m=3 n=50 K=10 mu=6 pool=18 total_value=3819) ===
+  MC runs done: 10/30
+  MC runs done: 20/30
+  MC runs done: 30/30
+  leak rate 0.781819 +- 0.025659 | shots 18.0 | destroyed value 833.2
+[cleanup] removed tmp dir output/regress_e12_greedy/tmp
+
+reports written: output/regress_e12_greedy/family_report.json, output/regress_e12_greedy/family_report.md
+family leak rate: 0.7913 +- 0.0095 [worst 0.8008]

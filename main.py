@@ -1,15 +1,18 @@
-"""CLI entry point for the DN-WTA multi-agent time-stepped pipeline.
+"""CLI entry point for dynamic multi-wave WTA simulation (DWTA).
 
-DN-WTA instances (header 'm n K mu dt delta_d v_m pcap', e.g.
-data/dn-data-v3/dn_3x50_K10_s01.txt) run through the multi-agent
-time-stepped simulation environment (dwta/dn_env.py) which exposes the
-local-observation interface (spec DN-WTA_v2_数据集说明.md §7) that MARL
-policies are built on:
+Examples (run from the project root):
+    python main.py --smoke --seeds 3 --timelimit 30
+    python main.py --instance data/dyn_wta_50x100x1_K10.txt \
+        --seeds 20 --timelimit 60
 
-    python main.py --instance data/dn-data-v3/dn_3x50_K10_s01.txt \
-        --policy greedy --seeds 30
-    python main.py --instance data/dn-data-v3/dn_3x50_K10_s01.txt \
-        --policy cplex --seeds 30 --timelimit 30
+DN-WTA v2 instances (header 'm n K mu dt delta_d v_m pcap', e.g.
+data/dn_3x50_K10_s1.txt) are detected automatically and run through the
+multi-agent time-stepped pipeline (dwta/dn_env.py):
+
+    python main.py --instance data/dn_3x50_K10_s1.txt \
+        --policy cplex --seeds 20
+    python main.py --instance data/dn_3x50_K10_s1.txt \
+        --policy greedy --seeds 20 --dn-reference
 """
 
 import argparse
@@ -23,8 +26,11 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
+from dwta.instance import DynInstance, StaticInstanceError  # noqa: E402
 from dwta.dn_instance import DNFormatError  # noqa: E402
 from dwta.wave_runner import CplexLimitError, DEFAULT_PYTHON  # noqa: E402
+from dwta import simulator  # noqa: E402
+from experiments import gen_dynamic_data as gdd, report  # noqa: E402
 
 
 class Tee:
@@ -61,6 +67,22 @@ def md5_of(path):
     return h.hexdigest()
 
 
+def print_mc_summary(log, runs, aggregates):
+    log("")
+    log("=== Monte-Carlo summary (%d runs) ===" % aggregates["runs"])
+    log("%6s | %10s | %10s | %12s" % ("seed", "leak value", "leak rate", "solver (s)"))
+    for r in runs:
+        log("%6d | %10d | %10.6f | %12.2f"
+            % (r["seed"], r["leak_value"], r["leak_rate"], r["total_solver_runtime"]))
+    a = aggregates
+    log("leak rate: %.6f +- %.6f (min %.6f, max %.6f)"
+        % (a["leak_rate_mean"], a["leak_rate_std"], a["leak_rate_min"], a["leak_rate_max"]))
+    log("avg total solver runtime: %.2f s | avg total wall time: %.2f s"
+        % (a["avg_total_solver_runtime"], a["avg_total_wall_time"]))
+    log("avg stayover count per wave: %s"
+        % ["%.1f" % w["avg_stay"] for w in a["by_wave"]])
+
+
 def handle_cplex_limit(log, err):
     log("")
     log("[ABORT] CPLEX problem-size limit reached (community edition):")
@@ -69,9 +91,8 @@ def handle_cplex_limit(log, err):
     log("1000 constraints. Options:")
     log("  1) apply for the free IBM CPLEX academic edition (IBM Academic")
     log("     Initiative) and install it into this environment, then re-run;")
-    log("  2) or use a smaller instance, e.g. the smoke-sized demo:")
-    log("     python main.py --instance data/dy-data-v1/dn_3x10_K10_s1.txt")
-    log("        --policy cplex --seeds 3 --timelimit 30")
+    log("  2) or use a smaller instance, e.g. the smoke demo:")
+    log("     python main.py --smoke --seeds 3 --timelimit 30")
     log("This simulation is aborted; partial temp files (if any) are cleaned.")
 
 
@@ -86,13 +107,13 @@ def is_dn_instance(path):
 
 
 def run_dn(args, log, tmp_dir):
-    """DN-WTA pipeline: multi-agent time-stepped simulation."""
-    from dwta.dn_instance import DNInstance  # noqa: F401
+    """DN-WTA v2 pipeline: multi-agent time-stepped simulation."""
+    from dwta.dn_instance import DNInstance, DNFormatError  # noqa: F401
     from dwta import dn_env, dn_policies
     from experiments import dn_report
 
     dn = DNInstance(args.instance)
-    log("DN-WTA instance: %s" % args.instance)
+    log("DN-WTA v2 instance: %s" % args.instance)
     log("  m=%d platforms, n=%d targets, K=%d steps (episode %gs), "
         "mu=%d/platform -> global pool %d" % (dn.m, dn.n, dn.K, dn.K * dn.dt,
                                               dn.mu, dn.m * dn.mu))
@@ -169,15 +190,11 @@ def run_dn(args, log, tmp_dir):
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(
-        description="DN-WTA multi-agent time-stepped simulation")
-    ap.add_argument("--instance", required=True,
-                    help="DN-WTA instance file (8-field header 'm n K mu "
-                         "dt delta_d v_m pcap', see data/ and "
-                         "DN-WTA_v3_数据集说明.md)")
+    ap = argparse.ArgumentParser(description="Dynamic multi-wave WTA simulation demo")
+    ap.add_argument("--instance", help="dynamic instance file (see gen_dynamic_data.py)")
     ap.add_argument("--seeds", type=int, default=20, help="number of Monte-Carlo runs")
     ap.add_argument("--seed-base", type=int, default=42, help="base seed (run r uses base+r)")
-    ap.add_argument("--timelimit", type=int, default=60, help="per-step solver timelimit (s)")
+    ap.add_argument("--timelimit", type=int, default=60, help="per-wave solver timelimit (s)")
     ap.add_argument("--delta", type=float, default=0.001, help="piecewise-linear accuracy")
     ap.add_argument("--threads", type=int, default=1, help="CPLEX threads")
     ap.add_argument("--branching", choices=["probabilities", "cplex"],
@@ -187,19 +204,29 @@ def main(argv=None):
                          "the built-in 'probabilities' branch callback asserts "
                          "on integral values (documented deviation)")
     ap.add_argument("--output", default="output", help="output directory")
+    ap.add_argument("--smoke", action="store_true",
+                    help="auto-generate and use a small 20x50 K=10 instance")
     ap.add_argument("--python", default=DEFAULT_PYTHON,
                     help="python interpreter used for the solver subprocess")
-    ap.add_argument("--policy", choices=["none", "greedy", "cplex"],
-                    default="greedy",
-                    help="decision policy: none (no-defense lower bound), "
-                         "greedy (distributed local greedy, observation-only, "
-                         "no solver needed - the interface MARL policies "
-                         "plug into), cplex (centralised myopic optimum, "
-                         "reference upper bound)")
+    ap.add_argument("--policy", choices=["base", "llm", "none", "cplex",
+                                         "greedy"], default="base",
+                    help="per-wave decision policy: base (plain CPLEX per wave, "
+                         "default) or llm (LLM-assisted strategy, M3) for "
+                         "legacy dyn_* instances; none / cplex / greedy for "
+                         "DN-WTA v2 instances (auto-detected)")
+    ap.add_argument("--llm-modules", default="",
+                    help="comma-separated LLM strategy modules for --policy llm "
+                         "(subset of a,b,c,d; default from DWTA_LLM_MODULES env)")
+    ap.add_argument("--llm-model", default=os.environ.get("DWTA_LLM_MODEL",
+                                                          "deepseek-v4-flash"),
+                    help="LLM model name for --policy llm (default DWTA_LLM_MODEL "
+                         "env or deepseek-v4-flash)")
+    ap.add_argument("--llm-timeout", type=int, default=60,
+                    help="per-call LLM API timeout in seconds (default 60)")
     ap.add_argument("--dn-reference", action="store_true",
-                    help="compute the per-step centralised CPLEX optimum "
-                         "alongside a non-CPLEX policy to measure its "
-                         "optimality gap (metric iii)")
+                    help="DN pipeline only: compute the per-step centralised "
+                         "CPLEX optimum alongside a non-CPLEX policy to "
+                         "measure its optimality gap (metric iii)")
     args = ap.parse_args(argv)
 
     os.makedirs(args.output, exist_ok=True)
@@ -210,15 +237,114 @@ def main(argv=None):
     exit_code = 0
 
     try:
-        if not is_dn_instance(args.instance):
-            log("[ERROR] not a DN-WTA instance file (header must have 8 "
-                "fields 'm n K mu dt delta_d v_m pcap'): %s"
-                % args.instance)
-            return 1
-        return run_dn(args, log, tmp_dir)
+        # DN-WTA v2 instances: route to the multi-agent time-stepped pipeline
+        if args.instance and is_dn_instance(args.instance):
+            if args.policy not in ("none", "cplex", "greedy"):
+                log("[ERROR] DN-WTA instances require --policy "
+                    "none|cplex|greedy (got %r; 'base'/'llm' are legacy "
+                    "dyn_* policies)" % args.policy)
+                return 1
+            return run_dn(args, log, tmp_dir)
+
+        smoke = args.smoke or not args.instance
+        if smoke:
+            log("smoke mode: generating 20 weapons x 50 targets, K=10 (5 targets/wave),"
+                " seed=123")
+            static = os.path.join(tmp_dir, "smoke_static_20x50x1.txt")
+            dyn_path = os.path.join(tmp_dir, "smoke_dyn_20x50x1_K10.txt")
+            gdd.make_smoke_static(static, seed=123)
+            gdd.convert(static, 10, 123, dyn_path, shuffle=True)
+        else:
+            dyn_path = args.instance
+
+        log("loading dynamic instance: %s" % dyn_path)
+        dyn = DynInstance(dyn_path)
+        log("m=%d n=%d K=%d mu=%d total_value=%d"
+            % (dyn.m, dyn.n, dyn.K, dyn.mu, dyn.total_value()))
+
+        solver = {"delta": args.delta, "timelimit": args.timelimit,
+                  "threads": args.threads, "python": args.python}
+        if args.branching != "probabilities":
+            # forwarded verbatim to wta_cplex.py via run_solver(extra_args=...)
+            solver["extra_args"] = ["-branching", args.branching]
+        runs = []
+
+        # per-wave decision policy injection (M3: --policy llm)
+        decide_fn = None
+        llm_ctx = None
+        if args.policy == "llm":
+            from dwta import llm_agent
+            # isolate the audit stream per experiment directory so the
+            # concurrent E2/E3/E4 runs never interleave jsonl lines; the
+            # canonical run (--output output) keeps the documented path
+            # logs/llm_calls.jsonl (doc deliverable #7)
+            llm_ctx = llm_agent.LLMContext(model=args.llm_model,
+                                           timeout=args.llm_timeout,
+                                           modules=args.llm_modules,
+                                           log_dir=(None if args.output == "output"
+                                                    else args.output))
+            decide_fn = llm_agent.build_policy(llm_ctx)
+            log("LLM policy active: model=%s modules=%s timeout=%ds"
+                % (llm_ctx.model, "+".join(llm_ctx.modules) or "(none)",
+                   llm_ctx.timeout))
+
+        for r in range(args.seeds):
+            seed = args.seed_base + r
+            log("")
+            log("=== MC run %d/%d (seed %d) ===" % (r + 1, args.seeds, seed))
+            runs.append(simulator.simulate(dyn, seed, solver, tmp_dir, log,
+                                           decide_fn=decide_fn))
+
+        aggregates = report.aggregate(runs)
+        print_mc_summary(log, runs, aggregates)
+
+        params = {
+            "instance": dyn_path, "smoke": smoke, "seeds": args.seeds,
+            "seed_base": args.seed_base, "delta": args.delta,
+            "timelimit": args.timelimit, "threads": args.threads,
+            "branching": args.branching,
+            "policy": args.policy,
+            "llm_modules": (llm_ctx.modules if llm_ctx else
+                            [m.strip() for m in args.llm_modules.split(",")
+                             if m.strip()]),
+            "llm_model": args.llm_model, "llm_timeout": args.llm_timeout,
+        }
+        environment = {"python": args.python, "project_root": PROJECT_ROOT,
+                       "argv": sys.argv}
+        source_md5 = {
+            "cplex/wta_cplex.py": md5_of(os.path.join(PROJECT_ROOT, "cplex",
+                                                      "wta_cplex.py")),
+            "cplex/validator.py": md5_of(os.path.join(PROJECT_ROOT, "cplex",
+                                                      "validator.py")),
+            "instance": md5_of(dyn_path),
+        }
+        instance_info = {"path": dyn_path, "m": dyn.m, "n": dyn.n, "K": dyn.K,
+                         "mu": dyn.mu, "total_value": dyn.total_value(),
+                         "has_dist": dyn.has_dist, "L": dyn.L, "pcap": dyn.pcap}
+        rep = report.build_report(params, environment, source_md5, instance_info, runs)
+        # report naming: smoke keeps the legacy demo_report.*; regular runs are
+        # named after the policy so E1/E4 land on the documented file names
+        # (doc 3.3/5.3: baseline_dist_K10_report / llm_dist_K10_report)
+        policy_tag = "baseline" if args.policy == "base" else args.policy
+        if smoke:
+            stem = "demo_report"
+        elif dyn.has_dist:
+            stem = "%s_dist_K%d_report" % (policy_tag, dyn.K)
+        else:
+            stem = "%s_K%d_report" % (policy_tag, dyn.K)
+        json_path = os.path.join(args.output, stem + ".json")
+        md_path = os.path.join(args.output, stem + ".md")
+        report.write_json(json_path, rep)
+        report.write_md(md_path, rep)
+        log("")
+        log("reports written: %s, %s" % (json_path, md_path))
+        log("result hash: %s" % rep["result_hash"])
     except CplexLimitError as e:
         handle_cplex_limit(log, e)
         exit_code = 2
+    except StaticInstanceError as e:
+        log("[ERROR] %s" % e)
+        exit_code = 1
     except DNFormatError as e:
         log("[ERROR] DN-WTA format: %s" % e)
         exit_code = 1

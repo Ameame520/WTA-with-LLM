@@ -1,0 +1,26 @@
+DN-WTA v2 instance: data/dn-data-v3/dn_3x50_K10_s01.txt
+  m=3 platforms, n=50 targets, K=10 steps (episode 100s), mu=6/platform -> global pool 18
+  dt=10s delta_d=3km/step v_m=1km/s pcap=0.95 total_value=3942
+policy: none
+
+=== MC run 1/1 (seed 42) ===
+  t= 0 | new 5 | vis  5 | shots 0 | kills  0 | bt  0 | pool 18 | cost_all 272.0
+  t= 1 | new 5 | vis  9 | shots 0 | kills  0 | bt  1 | pool 18 | cost_all 418.0
+  t= 2 | new 5 | vis 12 | shots 0 | kills  0 | bt  2 | pool 18 | cost_all 454.0
+  t= 3 | new 5 | vis 12 | shots 0 | kills  0 | bt  5 | pool 18 | cost_all 467.0
+  t= 4 | new 5 | vis 12 | shots 0 | kills  0 | bt  5 | pool 18 | cost_all 689.0
+  t= 5 | new 5 | vis 12 | shots 0 | kills  0 | bt  5 | pool 18 | cost_all 851.0
+  t= 6 | new 5 | vis 12 | shots 0 | kills  0 | bt  5 | pool 18 | cost_all 1067.0
+  t= 7 | new 5 | vis 12 | shots 0 | kills  0 | bt  5 | pool 18 | cost_all 1125.0
+  t= 8 | new 5 | vis 12 | shots 0 | kills  0 | bt  5 | pool 18 | cost_all 1038.0
+  t= 9 | new 5 | vis 12 | shots 0 | kills  0 | bt  5 | pool 18 | cost_all n/a
+  t=10 | new 0 | vis 12 | shots 0 | kills  0 | bt  0 | pool 18 | cost_all n/a
+
+=== Monte-Carlo summary (1 runs) ===
+  seed | leak value |  leak rate |     kills |   shots |  invalid |   ammo<
+    42 |       3942 |   1.000000 |         0 |       0 |        0 |      18
+leak rate: 1.000000 +- 0.000000 (min 1.000000, max 1.000000)
+
+reports written: output/verify_v3/report.json, output/verify_v3/report.md
+result hash: 44c099f8b1bc1c61ccd8c628af06630e2d5a275128887a2b4b8c9c92c45286d5
+[cleanup] removed tmp dir output/verify_v3/tmp (0 temp file(s): none)

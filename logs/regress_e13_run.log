@@ -1,0 +1,13 @@
+DN-WTA v3 family evaluation
+  split=test instances=dn_3x50_K10_s01.txt, dn_3x50_K10_s02.txt
+  policy=cplex seeds=30 (base 42) timelimit=30s
+
+=== dn_3x50_K10_s01.txt (m=3 n=50 K=10 mu=6 pool=18 total_value=3942) ===
+  MC runs done: 10/30
+  MC runs done: 20/30
+  MC runs done: 30/30
+  leak rate 0.742753 +- 0.023851 | shots 18.0 | destroyed value 1014.1
+
+=== dn_3x50_K10_s02.txt (m=3 n=50 K=10 mu=6 pool=18 total_value=3819) ===
+  MC runs done: 10/30
+  MC runs done: 20/30

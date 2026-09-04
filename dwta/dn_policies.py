@@ -260,7 +260,8 @@ class CplexPolicy(object):
 # registry
 # ----------------------------------------------------------------------
 
-def build_policy(name, solver=None, tmp_dir=None, with_reference=False):
+def build_policy(name, solver=None, tmp_dir=None, with_reference=False,
+                 model_path=None, device="auto"):
     if name == "none":
         return NonePolicy()
     if name == "greedy":
@@ -268,5 +269,10 @@ def build_policy(name, solver=None, tmp_dir=None, with_reference=False):
                             tmp_dir=tmp_dir)
     if name == "cplex":
         return CplexPolicy(solver, tmp_dir)
-    raise ValueError("unknown DN policy: %r (expected none/greedy/cplex)"
-                     % name)
+    if name == "marl":
+        from marl.policy import MarlPolicy
+        return MarlPolicy(model_path=model_path, device=device,
+                          greedy=True, seed=0, with_reference=with_reference,
+                          solver=solver, tmp_dir=tmp_dir)
+    raise ValueError("unknown DN policy: %r (expected none/greedy/cplex/"
+                     "marl)" % name)

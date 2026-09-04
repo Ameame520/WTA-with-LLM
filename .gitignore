@@ -1,6 +1,16 @@
+# 系统与编译产物
 .DS_Store
 .idea/
-logs/
-output/
-*.pyc
 __pycache__/
+*.pyc
+
+# 专利文档（整目录不上传）
+专利文档/
+
+# 除以下白名单外，其余 md 文件一律不上传
+*.md
+!DN-WTA_v3_数据集说明.md
+!项目总结.md
+!实验报告_MARL学习策略.md
+!实验报告_MARL核心框架.md
+!实验报告_传统3算法.md
